@@ -1,4 +1,4 @@
-# Scenery Pack Organiser - XP10/11/12 v2.0b6
+# Scenery Pack Organiser - XP10/11/12 v2.0r1
 
 Are you tired of sifting through all the packs in the Custom Scenery folder and reordering them manually?\
 Do you hate having to start and quit X-Plane just to add new scenery packs to the file so you can organise it?\
@@ -27,13 +27,14 @@ Regardless of which one you use, you can store the program anywhere you'd like.
 
 There is often confusion between `python` and `python3`. Doing the above will help you decide how to invoke python when running the script. If both commands give you an output, use the one that displays the highest version number. <br>
 
-If you have something more elaborate set up, please ensure the following libraries are available: `glob locale os pathlib pkg_resources struct sys time`, and also `pywin32` if you're on Windows. 
+If you have something more elaborate set up, please ensure the following libraries are available: `copy glob hashlib locale os pathlib pkg_resources struct sys time`, and non-standard libraries: `pyunpack patool`, and also `pywin32` if you're on Windows. 
 
 
 #### Standalone executable
 You do not need any additional software installed (ie. Python and PIP) on your system if you want to use the standalone executable. Simply download the one for your OS. <br>
 
-Executables are available for Windows, macOS, and Linux. I'm planning on implementing a CLI install option in the near future. 
+Executables are available for Windows, macOS, and Linux. I'm planning on implementing a CLI install option in the near future.\
+**Note: ** Especially after recent updates to the .py version, the standalone executables may be out of date by one version number. This shouldn't affect your experience too badly, and I'll usually get around to updating them in a week or so. 
 
 
 ## Usage
@@ -42,7 +43,7 @@ Executables are available for Windows, macOS, and Linux. I'm planning on impleme
 - On Windows, you can run it simply by double-clicking. If this doesn't work, try the next method
 
 - On any platform, first open Command Prompt or Terminal and change the active directory to where the program is located.\
-Then do `python3 organiser_v2.0b6.py` or `python organiser_v2.0b6.py`.\
+Then do `python3 organiser_v2.0r1.py` or `python organiser_v2.0r1.py`.\
 To decide which one to use, refer the installation instructions.
 #### Standalone executable
 - On Windows, you can run it simply by double-clicking.\
@@ -115,8 +116,8 @@ This project is licensed under GNU GPL v2.
 - 2.0b4 - Now offer to carry over DISABLED tags from existing ini. Fixed Windows shortcut support
 - 2.0b5 - Now offer to write unsorted packs. Now offer a choice to resolve airport conflicts. Fixed apt.dat files unable to be read. UI improvements: List out unsorted packs in one go, Display the name of the pack currently being sorted, Indent lists for easier reading
 - 2.0b6 - Hotfix for multi-codec attempts
+- 2.0r1 - Fix meshes being treated as overlays. Now offer to clean nonexistent X-Plane installs if found. Added code comments. UI improvements: Retry user inputs whenever invalid. 
 
 
 ## Known Issues
 - Automatic location of X-Plane installs doesn't work for Steam users. This is because Steam doesn't use the same mechanism used by the X-Plane installer, which is also what this program uses. There is no timeline for getting this one fixed - if you would like to contribute, I would urge you to check out the project GitHub.
-- Meshes such as AlpilotX's HD/UHD Mesh get treated as overlays. This is because on the surface, they look identical. Only by parsing the DSF is it possible to discern the two - some code for this has been written but it's incomplete. I'm not sure exactly when, but this will be addressed in 2.0 release 1.

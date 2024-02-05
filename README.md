@@ -1,4 +1,4 @@
-# Scenery Pack Organiser - XP10/11/12 v2.2b1
+# Scenery Pack Organiser - XP10/11/12 v2.2b2
 
 Are you tired of sifting through all the packs in the Custom Scenery folder and reordering them manually?\
 Do you hate having to start and quit X-Plane just to add new scenery packs to the file so you can organise it?\
@@ -23,14 +23,14 @@ It will read and sort all scenery packs, carry over DISABLED tags, check for air
 There is often confusion between `python` and `python3`. Doing the above will help you decide how to invoke python when running the script. If both commands give you an output, use the one that displays the highest version number.
 <br>
 
-Required non-standard Python3 libraries: `py7zr`, and if you're on Windows, `pywin32` too. You can install them yourself using `pip install <library name>`, or you can let the program install them for you :wink:.
+Required non-standard Python3 libraries: `py7zr`, `pyyaml`, and if you're on Windows, `pywin32`. You can install them yourself using `pip install <library name>`, or you can let the program install them for you :wink:.
 
 ## Usage
 ### How to run
 - On Windows, you can run it simply by double-clicking. If this doesn't work, try the next method
 
 - On any platform, first open Command Prompt or Terminal and change the active directory to where the program is located\
-Then do `python3 organiser_v2.2b1.py` or `python organiser_v2.2b1.py`\
+Then do `python3 organiser_v2.2b2.py` or `python organiser_v2.2b2.py`\
 To decide which one to use, refer the installation instructions
 
 - *NOTE: If the program crashes, try running with `--debug-1` or `--debug-2` added at the end of the command shown above to see where it crashes*\

@@ -37,7 +37,26 @@ while True:
                 exit()
             else:
                 print("  Sorry, I didn't understand.")
-# win32com
+# pyyaml
+while True:
+    try:
+        import yaml
+        break
+    except ModuleNotFoundError:
+        while True:
+            choice_install = input(f"I could not locate the pyyaml Python library. Would you like me to install it now? (yes/no or y/n): ").lower()
+            if choice_install in ["y", "yes"]:
+                print("Ok, I will install it now. If the program quits or gives an error after this, please restart it.\n")
+                os.system(f"pip install pyyaml")
+                print("\n")
+                break
+            elif choice_install in ["n", "no"]:
+                print("Ok, I will not install it. You will need to install it yourself and run the program again.\n")
+                input("Press enter to close")
+                exit()
+            else:
+                print("  Sorry, I didn't understand.")
+# pywin32
 while True:
     if sys.platform != "win32":
         break
@@ -69,7 +88,7 @@ if DEBUG:
     print(f"Debug level set to {DEBUG}. The program will be accordingly verbose during execution.")
     print("It will also display DSF errors and list packs as sorted in the end.")
     print()
-print("Scenery Pack Organiser version 2.2b1\n")
+print("Scenery Pack Organiser version 2.2b2\n")
 
 # Define where to look for direct X-Plane install traces
 search_path = {}
@@ -165,13 +184,14 @@ FILE_LINE_ABS = "SCENERY_PACK "
 FILE_DISAB_LINE_REL = "SCENERY_PACK_DISABLED Custom Scenery/"
 FILE_DISAB_LINE_ABS = "SCENERY_PACK_DISABLED "
 FILE_BEGIN = "I\n1000 Version\nSCENERY\n\n"
+BUF_SIZE = 65536
 
 # global variable declarations
 measure_time = []       # list to keep writing and popping times
 icao_conflicts = []     # list of ICAO codes that have more than one pack serving it
 icao_registry = {}      # dict of ICAO codes and the number of packs serving each
 disable_registry = {}   # dict that holds the folder line and beginning line of disabled packs
-dsffail_registry = []   # list of errored dsfs
+dsferror_registry = []   # list of errored dsfs
 unparsed_registry = []  # list of .lnk shortcuts that couldn't be parsed
 airport_registry = {"path": [], "line": [], "icaos": []}    
                         # dict that holds the folder path, file line, and a list of ICAOs served
@@ -179,7 +199,7 @@ airport_registry = {"path": [], "line": [], "icaos": []}
 
 # classification variables
 unsorted_registry = []          # list of packs that couldn't be classified
-quirks = {"Prefab Apt": [], "AO Overlay": [], "AO Region": [], "AO Root": [], "SAM Lib":[]}
+quirks = {"Prefab Apt": [], "AO Overlay": [], "AO Region": [], "AO Root": []}
 airports = {"Custom": [], "Default": [], "Global": []}
 overlays = {"Custom": [], "Default": []}
 meshes = {"Ortho": [], "Terrain": []}
@@ -237,7 +257,7 @@ while True:
 
 
 # DEF: Read Windows shorcuts
-# The non-Windows code was taken from https://gist.github.com/Winand/997ed38269e899eb561991a0c663fa49
+# The non-Windows code is from https://gist.github.com/Winand/997ed38269e899eb561991a0c663fa49
 def process_shortcut_read(sht_path:str):
     tgt_path = None
     if sys.platform == "win32":
@@ -319,7 +339,7 @@ def str_contains(searchstr:str, itemslist:list, casesensitive:bool = True):
 
 
 # DEF: Read uncompresssed DSF
-# This is heavily modified code from https://gist.github.com/nitori/6e7be6c9f00411c12aacc1ee964aee88 - thank you very much!
+# This code is adapted from https://gist.github.com/nitori/6e7be6c9f00411c12aacc1ee964aee88 - thank you very much!
 def mesh_dsf_decode(filepath:pathlib.Path, dirname):
     try:
         size = os.stat(filepath).st_size
@@ -330,26 +350,26 @@ def mesh_dsf_decode(filepath:pathlib.Path, dirname):
     footer_start = size - 16  # 16 byte (128bit) for md5 hash
     digest = hashlib.md5()
     try:
-        with open(filepath, "rb") as f:
+        with open(filepath, "rb") as dsf:
             # read 8s = 8 byte string, and "i" = 1 32 bit integer (total: 12 bytes)
-            raw_header = f.read(12)
+            raw_header = dsf.read(12)
             header, version = struct.unpack("<8si", raw_header)
             digest.update(raw_header)
             # Proceed only if the version and header match what we expect, else return a string
             if version == 1 and header == b"XPLNEDSF":
                 dsf_data = []
-                while f.tell() < footer_start:
-                    raw_atom_header = f.read(8)
+                while dsf.tell() < footer_start:
+                    raw_atom_header = dsf.read(8)
                     digest.update(raw_atom_header)
                     # 32bit atom id + 32 bit atom_size.. total: 8 byte
                     atom_id, atom_size = struct.unpack("<ii", raw_atom_header)
                     atom_id = struct.pack(">i", atom_id) # "DAEH" -> "HEAD"
                     # data size is atom_size excluding the just read 8 byte id+size header
-                    atom_data = f.read(atom_size - 8)
+                    atom_data = dsf.read(atom_size - 8)
                     digest.update(atom_data)
                     dsf_data.append((atom_id, atom_size, atom_data))
                 # remaining bit is the checksum, check if it matches
-                checksum = f.read()
+                checksum = dsf.read()
                 if checksum != digest.digest():
                     if DEBUG >= 2:
                         print(f"  [E] mesh_dsf_decode: checksum mismatch")
@@ -362,11 +382,11 @@ def mesh_dsf_decode(filepath:pathlib.Path, dirname):
                     return "ERR: DCDE: NoExtract"
                 else:
                     if DEBUG >= 2:
-                        print(f"  [E] mesh_dsf_decode: got '{header}' header")
+                        print(f"  [E] mesh_dsf_decode: unknown header. got '{header}'")
                     return "ERR: DCDE: !XPLNEDSF"
             elif version != 1:
                 if DEBUG >= 2:
-                    print(f"  [E] mesh_dsf_decode: got dsf version '{version}'")
+                    print(f"  [E] mesh_dsf_decode: unknown dsf version. got '{version}'")
                 return f"ERR: DCDE: v{((8 - len(str(version))) * ' ') + str(version)}"
     except Exception as e:
         if DEBUG >= 2:
@@ -376,7 +396,58 @@ def mesh_dsf_decode(filepath:pathlib.Path, dirname):
 
 # DEF: Select and read DSF. Uncompress if needed and call mesh_dsf_decode(). Return HEAD atom
 def mesh_dsf_read(end_directory:pathlib.Path, tag:str, dirname:str):
-    # TODO: Check for stored results
+    # Attempt to fetch cached data
+    try:
+        with open(end_directory.parent.absolute() / "sporganiser_cache.yaml", "r") as yaml_file:
+            dsf_cache_data = yaml.load(yaml_file, Loader = yaml.FullLoader)
+            if DEBUG >= 2:
+                print(f"  [I] mesh_dsf_read: loaded cached data")
+    except FileNotFoundError:
+        dsf_cache_data = {"version": 220}
+    # Read cached data
+    dsf_cache_data_iter = copy.deepcopy(dsf_cache_data)
+    try:
+        for dsf in dsf_cache_data_iter:
+            # check version
+            if dsf == "version":
+                if not dsf_cache_data[dsf] == 220:
+                    if DEBUG >= 2:
+                        print(f"  [W] mesh_dsf_read: unknown version tag. got '{dsf_cache_data[dsf]}'")
+                    dsf_cache_data = {"version": 220}
+                    break
+                continue
+            # locate dsf cached and check that it exists
+            dsf_path = end_directory / dsf
+            if not dsf_path.exists():
+                if DEBUG >= 2:
+                    print(f"  [W] mesh_dsf_read: cached dsf '{str(dsf_path)}' doesn't exist")
+                del dsf_cache_data[dsf]
+                continue
+            # hash dsf to ensure cached data is still valid
+            sha1 = hashlib.sha1()
+            md5 = hashlib.md5()
+            with open(dsf_path, 'rb') as dsf_file:
+                while True:
+                    data = dsf_file.read(BUF_SIZE)
+                    if not data:
+                        break
+                    sha1.update(data)
+                    md5.update(data)
+            if not (dsf_cache_data[dsf]["md5"] == md5.hexdigest() and dsf_cache_data[dsf]["sha1"] == sha1.hexdigest()):
+                if DEBUG >= 2:
+                    print(f"  [W] mesh_dsf_read: hash of cached dsf '{str(dsf_path)}' doesn't match")
+                del dsf_cache_data[dsf]
+                continue
+            # attempt to get the tag data requested
+            try:
+                tag_data = dsf_cache_data[dsf][tag]
+                return tag_data
+            except KeyError:
+                pass
+    except Exception as e:
+        if DEBUG >= 2:
+            print(f"  [E] mesh_dsf_read: unhandled error '{e}'")
+        dsf_cache_data = {"version": 220}        
     # Get list of potential tile directories to search
     list_dir = dir_list(end_directory, "dirs")
     tile_dir = []
@@ -390,6 +461,8 @@ def mesh_dsf_read(end_directory:pathlib.Path, tag:str, dirname:str):
     # Going one tile at a time, attempt to extract a dsf from the tile
     uncomp_flag = 0
     dsf_data = None
+    final_tile = None
+    final_dsf = None
     for tile in tile_dir:
         dsfs = dir_list(end_directory / tile, "files")
         for dsf in dsfs:
@@ -413,20 +486,22 @@ def mesh_dsf_read(end_directory:pathlib.Path, tag:str, dirname:str):
                         if DEBUG >= 2:
                             print(f"  [I] mesh_dsf_read: not a 7z archive. working on dsf directly")
                     else:
-                        dsffail_registry.append([f"{dsf}' in '{end_directory.parent.absolute()}", "ERR: READ: MiscError"])
+                        dsferror_registry.append([f"{dsf}' in '{end_directory.parent.absolute()}", "ERR: READ: MiscError"])
                         uncomp_flag = 0
                         if DEBUG >= 2:
-                            print(f"  [W] mesh_dsf_read: unhandled error '{e}'. working on dsf directly")
+                            print(f"  [E] mesh_dsf_read: unhandled error '{e}'. working on dsf directly")
                 # Now attempt to decode this DSF
                 dsf_data = mesh_dsf_decode(uncomp_path, dirname)
                 # If it returns an error, try the next one. Else, get out of the intra-tile loop
                 if str(dsf_data).startswith("ERR: ") or dsf_data == None:
-                    dsffail_registry.append([f"{dsf} in {end_directory.parent.absolute()}", dsf_data])
+                    dsferror_registry.append([f"{dsf} in {end_directory.parent.absolute()}", dsf_data])
                     uncomp_flag = 0
                     if DEBUG >= 2:
                         print(f"  [W] mesh_dsf_read: caught '{str(dsf_data)}' from mesh_dsf_decode")
                     continue
                 else:
+                    final_tile = tile
+                    final_dsf = dsf
                     break
         # If a DSF was successfully read, get out of the inter-tile loop. Else, move on to the next tile folder
         if uncomp_flag:
@@ -439,13 +514,32 @@ def mesh_dsf_read(end_directory:pathlib.Path, tag:str, dirname:str):
             print(f"  [E] mesh_dsf_read: tile loop was not broken, ie. no dsf could be read")
         return "ERR: READ: TileEmpty"
     # Search for sim/overlay in HEAD atom. If found, return True
-    if tag == b"sim/overlay\x001":
-        overlay = False
+    if tag == "sim/overlay 1":
+        overlay = None
         for atom_id, atom_size, atom_data in dsf_data:
             if atom_id == b"HEAD" and b"sim/overlay\x001" in atom_data:
                 overlay = True
                 break
-        # Store results to skip this step next time
+        else:
+            overlay = False
+        # Generate hashes
+        sha1 = hashlib.sha1()
+        md5 = hashlib.md5()
+        with open(end_directory / tile / dsf, 'rb') as dsf_file:
+            while True:
+                data = dsf_file.read(BUF_SIZE)
+                if not data:
+                    break
+                sha1.update(data)
+                md5.update(data)
+        # Store result to speed up future runs
+        dsf_cache_data_new = {f"{final_tile}/{final_dsf}": {"sim/overlay 1": overlay, "md5": md5.hexdigest(), "sha1": sha1.hexdigest()}}
+        dsf_cache_data.update(dsf_cache_data_new)
+        with open(end_directory.parent.absolute() / "sporganiser_cache.yaml", "w") as yaml_file:
+            yaml.dump(dsf_cache_data, yaml_file)
+        if DEBUG >= 2:
+            print(f"  [I] mesh_dsf_read: new cache written")
+        # Return result
         return overlay
     else:
         if DEBUG >= 2:
@@ -502,12 +596,12 @@ def process_type_apt(dirpath:pathlib.Path, dirname:str, file_line:str, disable:b
                 if not disable:
                     splitline = line.split(maxsplit=5)
                     icao_code = splitline[4]
-                    # Try updating icao registry
+                    # Update icao registry
                     try:
                         icao_registry[icao_code] += 1
                     except KeyError:
                         icao_registry[icao_code] = 1
-                    # Try updating airport registry
+                    # Update airport registry
                     try:
                         reg_index = airport_registry["path"].index(dirpath)
                         airport_registry["icaos"][reg_index].append(icao_code)
@@ -526,12 +620,12 @@ def process_type_mesh(dirpath:pathlib.Path, dirname:str):
         if DEBUG >= 2:
             print("  [I] process_type_mesh: 'Earth nav data' folder not found")
         return
-    # Read DSF and check for sim/overlay. If error or None returned, log in mesh error registry
-    overlay = mesh_dsf_read(end_path, b"sim/overlay\x001", dirname)
+    # Read DSF and check for sim/overlay. If error or None returned, log in dsf error registry
+    overlay = mesh_dsf_read(end_path, "sim/overlay 1", dirname)
     if str(overlay).startswith("ERR: ") or overlay == None:
         if DEBUG >= 2:
             print(f"  [W] process_type_mesh: caught '{str(overlay)}' from mesh_dsf_read")
-        dsffail_registry.append([dirpath, overlay])
+        dsferror_registry.append([dirpath, overlay])
         return
     mesh_ao = process_quirk_ao(dirpath, dirname)
     if overlay:
@@ -555,9 +649,6 @@ def process_type_other(dirpath:pathlib.Path, dirname:str):
     other_result = None
     if dir_contains(dirpath, ["library.txt"], "generic"):
         other_result = "Library"
-        other_sam = process_quirk_sam(dirpath, dirname)
-        if other_sam in ["SAM Lib"]:
-            other_result = other_sam
     if dir_contains(dirpath, ["plugins"]):
         other_result = "Plugin"
     if DEBUG >= 2 and other_result:
@@ -592,16 +683,6 @@ def process_quirk_ao(dirpath:pathlib.Path, dirname:str):
     return ao_result
 
 
-# DEF: Check if the pack is a SAM library
-def process_quirk_sam(dirpath:pathlib.Path, dirname:str):
-    sam_result = None
-    if str_contains(dirname, ["SAM"]):
-        sam_result = "SAM Lib"
-    if DEBUG >= 2 and sam_result:
-        print(f"    [I] process_quirk_sam: found to be {sam_result}")
-    return sam_result
-
-
 # DEF: Classify the pack
 def process_main(path, shortcut = False):
     abs_path = SCENERY_PATH / path
@@ -629,10 +710,12 @@ def process_main(path, shortcut = False):
     if not classified:
         pack_type = process_type_apt(abs_path, name, line, disable)
         classified = True
+        # Standard definitions
         if pack_type in ["Global", "Default", "Custom"]:
             airports[pack_type].append(line)
             if DEBUG >= 2:
                 print(f"  [I] process_main: classified as '{pack_type.lower()} Airport'")
+        # Quirk handling
         elif pack_type in ["Prefab Apt"]:
             quirks[pack_type].append(line)
             if DEBUG >= 2:
@@ -645,6 +728,7 @@ def process_main(path, shortcut = False):
         if not pack_type: 
             pack_type = process_quirk_ao(abs_path, name)
         classified = True
+        # Standard definitions
         if pack_type in ["Default Overlay", "Custom Overlay"]:
             overlays[pack_type[:-8]].append(line)
             if DEBUG >= 2:
@@ -653,6 +737,7 @@ def process_main(path, shortcut = False):
             meshes[pack_type[:-5]].append(line)
             if DEBUG >= 2:
                 print(f"  [I] process_main: classified as '{pack_type.lower()}'")
+        # Quirk handling
         elif pack_type in ["AO Overlay", "AO Region", "AO Root"]:
             quirks[pack_type].append(line)
             if DEBUG >= 2:
@@ -663,11 +748,13 @@ def process_main(path, shortcut = False):
     if not classified:
         pack_type = process_type_other(abs_path, name)
         classified = True
+        # Standard definitions
         if pack_type in ["Plugin", "Library"]:
             misc[pack_type].append(line)
             if DEBUG >= 2:
                 print(f"  [I] process_main: classified as '{pack_type.lower()}'")
-        elif pack_type in ["SAM Lib"]:
+        # Quirk handling
+        elif pack_type in []:
             quirks[pack_type].append(line)
             if DEBUG >= 2:
                 print(f"  [I] process_main: classified as quirk '{pack_type.lower()}'")
@@ -705,7 +792,7 @@ for directory in folder_list:
             maxlength = len(progress_str)
         print(f"\r{progress_str}", end = "\r")
     process_main(directory)
-    if DEBUG >= 1:
+    if DEBUG >= 1 and DEBUG < 2:
         print(f"Main: Finished dir: {directory}")
 print()
 
@@ -736,7 +823,7 @@ for shtcut_path in shtcut_list:
                 print(f"\r{progress_str}", end = "\r")
                 printed = True
             process_main(folder_path, shortcut = True)
-            if DEBUG >= 1:
+            if DEBUG >= 1 and DEBUG < 2:
                 print(f"Main: Finished shortcut: {folder_path}")
             continue
         else: 
@@ -777,11 +864,11 @@ print(f"Done! Took me {time.time() - measure_time.pop()} seconds to classify.")
 
 
 # Display all packs that errored when reading DSFs (if debugging enabled)
-if dsffail_registry and DEBUG:
+if dsferror_registry and DEBUG:
     print("\n[W] Main: I was unable to read DSF files from some scenery packs. Please check if they load correctly in X-Plane.")
     print("[^] Main: This does not necessarily mean that the pack could not be classified. Such packs will be listed separately.")
     print("[^] Main: I will list them out now with the error type.")
-    for dsffail in dsffail_registry:
+    for dsffail in dsferror_registry:
         print(f"[^]   {dsffail[1]} in '{dsffail[0]}'")
 
 
@@ -972,7 +1059,6 @@ packs = {
     "airports: global": airports["Global"],
     "misc: plugin": misc["Plugin"],
     "misc: library": misc["Library"],
-    "quirks: sam lib": quirks["SAM Lib"],
     "overlays: custom": overlays["Custom"],
     "overlays: default": overlays["Default"],
     "quirks: ao overlay": quirks["AO Overlay"],

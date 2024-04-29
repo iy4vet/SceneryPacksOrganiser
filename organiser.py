@@ -1121,7 +1121,7 @@ def pack_import():
 
 
 # Main flow
-def main():
+def main_flow():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-d', '--debug', action='store_true', dest='debug')
 
@@ -1179,7 +1179,11 @@ def main():
     part5 = launch_xp(debug, xplane_path)
     part5.getsetgo()
 
+def main() -> int:
+    """Today's the day :D"""
+    pack_import()
+    main_flow()
+    return 0
 
-# Today's the day :D
-pack_import()
-main()
+if __name__ == '__main__':
+    sys.exit(main())

@@ -11,6 +11,7 @@ import shutil
 import struct
 import sys
 import time
+import tempfile
 
 
 # TODO: automate these later
@@ -1121,26 +1122,8 @@ def pack_import():
 
 
 # Main flow
-def main_flow():
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('-d', '--debug', action='store_true', dest='debug')
+def main_flow(debug:int, temp_path:pathlib.Path):
 
-    args = argparser.parse_args()
-    if args.debug >= 2:
-        debug = 2
-    elif args.debug == 1:
-        debug = 1
-    else:
-        debug = 0
-
-    # Create temp path
-    while True:
-        try:
-            temp_path = pathlib.Path(f"organiser_temp_{time.time()}")
-            os.mkdir(temp_path)
-            break
-        except FileExistsError:
-            continue
     # First, locate X-Plane
     part1 = locate_xplane(debug)
     part1.finalise_path()
@@ -1182,7 +1165,19 @@ def main_flow():
 def main() -> int:
     """Today's the day :D"""
     pack_import()
-    main_flow()
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('-d', '--debug', type=int, choices=[0, 1, 2], dest='debug_level')
+
+    args = argparser.parse_args()
+    debug_level = args.debug_level
+
+    # create a temporary directory using the context manager
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        if debug_level >= 1:
+            print('created temporary directory', tmpdirname)
+        main_flow(debug_level, tmpdirname)
+    # temporary directory and contents have been removed
     return 0
 
 if __name__ == '__main__':

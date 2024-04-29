@@ -1133,7 +1133,6 @@ def main():
     else:
         debug = 0
 
-    debug = 2
     # Create temp path
     while True:
         try:

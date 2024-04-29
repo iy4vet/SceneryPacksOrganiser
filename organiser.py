@@ -1122,6 +1122,17 @@ def pack_import():
 
 # Main flow
 def main():
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('-d', '--debug', action='store_true', dest='debug')
+
+    args = argparser.parse_args()
+    if args.debug >= 2:
+        debug = 2
+    elif args.debug == 1:
+        debug = 1
+    else:
+        debug = 0
+
     debug = 2
     # Create temp path
     while True:

@@ -1,4 +1,4 @@
-# Scenery Pack Organiser - XP10/11/12 v3.0a1
+# Scenery Pack Organiser - XP10/11/12 v3.0a2
 
 Are you tired of sifting through all the packs in the Custom Scenery folder and reordering them manually?\
 Do you hate having to start and quit X-Plane just to add new scenery packs to the file so you can organise it?\
@@ -23,10 +23,10 @@ It will read and sort all scenery packs, carry over DISABLED tags, check for air
 There is often confusion between `python` and `python3`. Doing the above will help you decide how to invoke python when running the script. If both commands give you an output, use the one that displays the highest version number.
 <br>
 
-Required non-standard Python3 libraries: `py7zr`, `pyyaml`, and if you're on Windows, `pywin32`. You can install them yourself using `pip install <library name>`, or you can let the program install them for you :wink:.
+Required non-standard Python3 libraries: `py7zr`, `pyyaml`, and if you're on Windows, `pywin32`. You can install them yourself using `pip install <library name>`, ~~or you can let the program install them for you :wink:.~~
 
 ## Usage
-### How to run
+### How to run (2 methods)
 - On Windows, you can run it simply by double-clicking. If this doesn't work, try the next method
 
 - On Linux and macOS, set the executable bit, and double-click. If prompted, choose "Run in Terminal"
@@ -35,8 +35,8 @@ Required non-standard Python3 libraries: `py7zr`, `pyyaml`, and if you're on Win
 Then do `python3 organiser.py` or `python organiser.py`\
 To decide which one to use, refer the installation instructions
 
-- ~~*NOTE: If the program crashes, try running with `--debug-1` or `--debug-2` added at the end of the command shown above to see where it crashes*~~\
-*Higher numbers correspond to greater verbosity, ie. debug 2 will show even more than debug 1 would*\
+- *NOTE: If the program crashes, try running with `--verbose 1` or `--verbose 2` added at the end of the command shown above to see where it crashes*\
+*Higher numbers correspond to greater verbosity, ie. level 2 will show even more than level 1 would*\
 *Of course, you can also use this if you just want to feel cool - there's no performance hit!*
 
 
@@ -99,6 +99,7 @@ A huge thank-you to these awesome people:
 - [@cyl8](https://forums.x-plane.org/index.php?/profile/327870-cyl8/)
 
 This project is licensed under the GNU GPL v2.
+- 3.0a2 - Move to argparser. Minor changes to program flow
 - 3.0a1 - Refactored code for improved flexibility and legibility
 - 2.2r1 - Add shebang to allow double-clicking on Unix systems
 - 2.2b2 - Now save results of DSF parse so future runs are faster

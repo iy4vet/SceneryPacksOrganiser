@@ -769,7 +769,7 @@ class sort_packs:
 
     # Display scary lists for the user
     def main_display(self):
-        # Display all packs that errored when reading DSFs (if verboseging enabled)
+        # Display all packs that errored when reading DSFs (if verbose)
         if self.dsferror_registry and self.verbose >= 1:
             print("\n[W] Main: I was unable to read DSF files from some scenery packs. Please check if they load correctly in X-Plane.")
             print("[^] Main: This does not necessarily mean that the pack could not be classified. Such packs will be listed separately.")
@@ -1183,7 +1183,7 @@ def main_flow(verbose:int, temp_path:pathlib.Path):
         return 0
 
 def main() -> int:
-    """Today"s the day :D"""
+    """Today's the day :D"""
     pack_import()
 
     argparser = argparse.ArgumentParser()

@@ -1,4 +1,4 @@
-# Scenery Pack Organiser - XP10/11/12 v3.0a2
+# Scenery Pack Organiser - XP10/11/12 v3.0a3
 
 Are you tired of sifting through all the packs in the Custom Scenery folder and reordering them manually?\
 Do you hate having to start and quit X-Plane just to add new scenery packs to the file so you can organise it?\
@@ -72,6 +72,7 @@ If you want to roll back to the old ini, delete the existing one and then remove
     - Global Airports
     - Scenery Plugins
     - Scenery Libraries
+    - *[SimHeaven](https://simheaven.com/) Overlays*
     - Custom Overlays
     - Default Overlays
     - *[AutoOrtho](https://forums.x-plane.org/index.php?/forums/topic/259020-autoortho-streaming-ortho-imagery-for-x-plane-12-and-11/) Overlays*
@@ -99,8 +100,9 @@ A huge thank-you to these awesome people:
 - [@cyl8](https://forums.x-plane.org/index.php?/profile/327870-cyl8/)
 
 This project is licensed under the GNU GPL v2.
+- 3.0a3 - Add SimHeaven quirk handling. UI Improvements: improved spacing; wait a few seconds between each part. Minor bugfixes
 - 3.0a2 - Move to argparser. Minor changes to program flow
-- 3.0a1 - Refactored code for improved flexibility and legibility
+- 3.0a1 - Major code refactor for improved flexibility and legibility
 - 2.2r1 - Add shebang to allow double-clicking on Unix systems
 - 2.2b2 - Now save results of DSF parse so future runs are faster
 - 2.2b1 - Complete rewrite of airport overlap system. Minor bugfixes

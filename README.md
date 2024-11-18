@@ -1,4 +1,4 @@
-# Scenery Pack Organiser - XP10/11/12 v3.0a3
+# Scenery Pack Organiser - XP10/11/12 v3.0r1
 
 Are you tired of sifting through all the packs in the Custom Scenery folder and reordering them manually?\
 Do you hate having to start and quit X-Plane just to add new scenery packs to the file so you can organise it?\
@@ -100,6 +100,7 @@ A huge thank-you to these awesome people:
 - [@cyl8](https://forums.x-plane.org/index.php?/profile/327870-cyl8/)
 
 This project is licensed under the GNU GPL v2.
+- 3.0r1 - Fix for shutil's new behaviour
 - 3.0a3 - Add SimHeaven quirk handling. UI Improvements: improved spacing; wait a few seconds between each part. Minor bugfixes
 - 3.0a2 - Move to argparser. Minor changes to program flow
 - 3.0a1 - Major code refactor for improved flexibility and legibility

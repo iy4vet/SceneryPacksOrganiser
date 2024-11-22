@@ -1,0 +1,11 @@
+Brotli==1.1.0
+inflate64==1.0.0
+multivolumefile==0.2.3
+psutil==6.1.0
+py7zr==0.22.0
+pybcj==1.0.2
+pycryptodomex==3.21.0
+pyppmd==1.1.0
+PyYAML==6.0.2
+pyzstd==0.16.2
+texttable==1.7.0

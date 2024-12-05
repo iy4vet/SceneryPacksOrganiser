@@ -20,6 +20,12 @@ import py7zr
 import py7zr.exceptions
 import yaml
 
+# Platform-specific imports
+if sys.platform == "win32":
+    import win32com.client
+if sys.platform == "darwin":
+    import Cocoa
+
 # Global constant declarations
 XP10_GLOBAL_AIRPORTS = "SCENERY_PACK Custom Scenery/Global Airports/\n"
 XP12_GLOBAL_AIRPORTS = "SCENERY_PACK *GLOBAL_AIRPORTS*\n"
@@ -167,7 +173,7 @@ class SortPacks:
         self.icao_registry = {}     # dict of ICAO codes and the number of packs serving each
         self.disable_registry = {}  # dict that holds the folder line and beginning line of disabled packs
         self.dsferror_registry = []  # list of errored dsfs
-        self.unparsed_registry = []  # list of .lnk shortcuts that couldn't be parsed
+        self.unparsed_registry = []  # list of shortcuts/aliases that couldn't be parsed
         self.airport_registry = {"path": [], "line": [], "icaos": []}
         # Classification variable declarations
         self.unsorted_registry = []      # list of packs that couldn't be classified
@@ -181,6 +187,8 @@ class SortPacks:
 
     # Main code and return
     def main(self) -> tuple:
+        # Import disabled packs from old ini
+        self.import_disabled()
         # Run the sorting algorithms
         self.main_folders()
         print()
@@ -192,12 +200,14 @@ class SortPacks:
         self.main_cleanup()
         self.main_display()
         # Prepare data and return
-        sort_result = SortPacksResult(self.unsorted_registry,
-                                      self.quirks,
-                                      self.airports,
-                                      self.overlays,
-                                      self.meshes,
-                                      self.other)
+        sort_result = SortPacksResult(
+            self.unsorted_registry,
+            self.quirks,
+            self.airports,
+            self.overlays,
+            self.meshes,
+            self.other
+        )
         airport_data = AirportData(self.icao_registry, self.airport_registry)
         return (sort_result, airport_data)
 
@@ -750,8 +760,11 @@ class SortPacks:
     def main_shortcuts(self) -> None:
         maxlength = 0
         printed = False
-        shtcut_list = [str(self.xplane_path / "Custom Scenery" / shtcut) for shtcut in
-                       self.misc_functions.dir_list(self.xplane_path / "Custom Scenery", "files") if shtcut.endswith(".lnk")]
+        shtcut_list = [
+            str(self.xplane_path / "Custom Scenery" / shtcut)
+            for shtcut in self.misc_functions.dir_list(self.xplane_path / "Custom Scenery", "files")
+            if shtcut.endswith(".lnk")
+        ]
         shtcut_list.sort()
         if shtcut_list and sys.platform != "win32":
             print(f"I found Windows .LNK shortcuts, but I'm not on Windows! Detected platform: {sys.platform}")
@@ -793,7 +806,57 @@ class SortPacks:
 
     # Process macOS Aliases
     def main_aliases(self) -> None:
-        pass
+        maxlength = 0
+        printed = False
+        ali_list = []
+        files_list = self.misc_functions.dir_list(self.xplane_path / "Custom Scenery", "files")
+        files_list = [
+            str(self.xplane_path / "Custom Scenery" / file)
+            for file in files_list
+            if not file.endswith(".lnk")
+        ]
+        for file_path in files_list:
+            try:
+                ali_target = self.misc_functions.parse_alias(file_path)
+                if ali_target and ali_target.exists():
+                    ali_list.append((file_path, ali_target))
+            except Exception as e:
+                if self.verbose >= 2:
+                    print(f"  [E] SortPacks main_aliases: unhandled error '{e}'")
+                self.unparsed_registry.append(file_path)
+        if ali_list and sys.platform != "darwin":
+            print(f"I found macOS aliases, but I'm not on macOS! Detected platform: {sys.platform}")
+            print("I will still attempt to read them, but I cannot guarantee anything. I would suggest you use symlinks instead.")
+        elif ali_list and sys.platform == "darwin":
+            print("Reading macOS aliases...")
+        for ali_path, target_path in ali_list:
+            try:
+                if target_path.exists():
+                    if self.verbose >= 1:
+                        print(f"Main: Starting alias: {target_path}")
+                    else:
+                        progress_str = f"Processing alias: {str(target_path)}"
+                        if len(progress_str) <= maxlength:
+                            progress_str = f"{progress_str}{' ' * (maxlength - len(progress_str))}"
+                        else:
+                            maxlength = len(progress_str)
+                        print(f"\r{progress_str}", end="\r")
+                        printed = True
+                    self.process_main(target_path, shortcut=True)
+                    if self.verbose >= 1 and self.verbose < 2:
+                        print(f"Main: Finished alias: {target_path}")
+                else:
+                    if self.verbose >= 1:
+                        print(f"Main: Failed alias (target does not exist): {target_path}")
+                    self.unparsed_registry.append(ali_path)
+            except Exception as e:
+                if self.verbose >= 2:
+                    print(f"  [E] SortPacks main_aliases: unhandled error '{e}'")
+                if self.verbose >= 1:
+                    print(f"Main: Failed alias: {ali_path}")
+                self.unparsed_registry.append(ali_path)
+        if printed:
+            print()
 
     # Cleanup after processing
     def main_cleanup(self) -> None:
@@ -1128,17 +1191,16 @@ class misc_functions:
         # External variable declarations
         self.verbose = verbose
 
-    # Read Windows shortcuts
+    # Parse Windows shortcuts
     # The non-Windows code is from https://gist.github.com/Winand/997ed38269e899eb561991a0c663fa49
     def parse_shortcut(self, sht_path: str) -> pathlib.Path:
         tgt_path = None
         if sys.platform == "win32":
-            import win32com.client
             shell = win32com.client.Dispatch("WScript.Shell")
             tgt_path = shell.CreateShortCut(sht_path).Targetpath
         else:
             if self.verbose >= 1:
-                print(f"  [W] misc_functions parse_shortcut: not on windows but made to parse {sht_path}")
+                print(f"  [W] misc_functions parse_shortcut: not on Windows but made to parse {sht_path}")
             with open(sht_path, "rb") as stream:
                 content = stream.read()
                 lflags = struct.unpack("I", content[0x14:0x18])[0]
@@ -1155,6 +1217,37 @@ class misc_functions:
                 content = content[position:position + size].split(b"\x00", 1)
                 tgt_path = content[-1].decode("utf-16" if len(content) > 1 else locale.getdefaultlocale()[1])
         return pathlib.Path(tgt_path)
+
+    # Parse macOS aliases
+    def parse_alias(self, ali_path: str) -> pathlib.Path:
+        if sys.platform == "darwin":
+            try:
+                alias_url = Cocoa.NSURL.fileURLWithPath_(ali_path)
+                bookmark_data, error = Cocoa.NSURL.bookmarkDataWithContentsOfURL_error_(alias_url, None)
+                if error:
+                    if self.verbose >= 1:
+                        print(f"  [E] Failed to read bookmark data: {ali_path}, error: {error.localizedDescription()}")
+                    return None
+                resolved_url, stale, error = Cocoa.NSURL.URLByResolvingBookmarkData_options_relativeToURL_bookmarkDataIsStale_error_(
+                    bookmark_data,
+                    Cocoa.NSURLBookmarkResolutionWithoutUI | Cocoa.NSURLBookmarkResolutionWithoutMounting,
+                    None,
+                    None,
+                    None
+                )
+                if error:
+                    if self.verbose >= 1:
+                        print(f"  [E] parse_alias: failed to resolve alias: {ali_path}, error: {error.localizedDescription()}")
+                    return None
+                return pathlib.Path(resolved_url.path())
+            except Exception as e:
+                if self.verbose >= 1:
+                    print(f"  [E] parse_alias: exception while resolving alias: {ali_path}, error: {e}")
+                return None
+        else:
+            if self.verbose >= 1:
+                print(f"  [W] parse_alias: not on macOS but made to parse {ali_path}")
+            return None
 
     # Get the list of all directories inside a parent directory
     def dir_list(self, directory: pathlib.Path, result: str) -> list:
@@ -1213,7 +1306,7 @@ class misc_functions:
 # Pack importing
 def __init__() -> None:
     shutil.register_unpack_format("7zip", [".7z", ".dsf"], py7zr.unpack_7zarchive)
-    print("Scenery Pack Organiser: version 3.0r1")
+    print("Scenery Pack Organiser: version 3.1r1")
 
 
 # Main flow

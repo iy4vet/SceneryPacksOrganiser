@@ -1,10 +1,10 @@
-# Scenery Pack Organiser - XP10/11/12 v3.0r1
+# Scenery Pack Organiser - XP10/11/12 v3.1r1
 
 Are you tired of sifting through all the packs in the Custom Scenery folder and reordering them manually?\
 Do you hate having to start and quit X-Plane just to add new scenery packs to the file so you can organise it?\
 This utility is for you!\
 <br>
-It will read and sort all scenery packs, carry over DISABLED tags, check for airport conflicts, and even warn you of faulty packages! 
+It will read and sort all scenery packs, carry over DISABLED tags, check for airport conflicts, and even warn you of faulty packages!
 
 
 ## Installation
@@ -20,10 +20,10 @@ It will read and sort all scenery packs, carry over DISABLED tags, check for air
     - On Linux, this should happen automatically when installing the respective packages through your package manager
 4. Check by opening Command Prompt or Terminal and doing `pip --version` and `python3 --version` or `python --version`
 
-There is often confusion between `python` and `python3`. Doing the above will help you decide how to invoke python when running the script. If both commands give you an output, use the one that displays the highest version number.
+There is sometimes confusion between `python` and `python3`. Doing the above will help you decide how to invoke python when running the script. If both commands give you an output, use the one that displays the highest version number.
 <br>
 
-Required non-standard Python3 libraries: `py7zr`, `pyyaml`, and if you're on Windows, `pywin32`. You can install them yourself using `pip install <library name>`, ~~or you can let the program install them for you :wink:.~~
+Required non-standard Python3 libraries: `py7zr`, and `pyyaml`. If you're on Windows, you'll also need `pywin32`. Otherwise, if you're on macOS, you'll also need `pyobjc`. You can install them yourself using `pip install <library name>`.
 
 ## Usage
 ### How to run (2 methods)
@@ -88,7 +88,9 @@ If you want to roll back to the old ini, delete the existing one and then remove
 - Supports XP10/11's and XP12's Global Airports entry simultaneously
 
 
-## Credits/Changelog
+## Credits and Licensing
+This project is licensed under the GNU GPL v2.
+<br>
 Any contributions (features or bugfixes) are very welcome :grin:. [Here's the project GitHub](https://github.com/iy4vet/SceneryPacksOrganiser/).\
 Feel free to message me on Discord - my username is `iy4vet`. I'm also present in the X-Plane Community and Official servers.\
 <br>
@@ -98,43 +100,45 @@ A huge thank-you to these awesome people:
 - [@carlos maida](https://forums.x-plane.org/index.php?/profile/113644-carlos-maida/)
 - [@Birdy.dma](https://forums.x-plane.org/index.php?/profile/147165-birdydma/)
 - [@cyl8](https://forums.x-plane.org/index.php?/profile/327870-cyl8/)
+- [@DHF](https://forums.x-plane.org/index.php?/profile/1218415-dhf/)
 
-This project is licensed under the GNU GPL v2.
-- 3.0r1 - Fix for shutil's new behaviour
-- 3.0a3 - Add SimHeaven quirk handling. UI Improvements: improved spacing; wait a few seconds between each part. Minor bugfixes
-- 3.0a2 - Move to argparser. Minor changes to program flow
-- 3.0a1 - Major code refactor for improved flexibility and legibility
-- 2.2r1 - Add shebang to allow double-clicking on Unix systems
-- 2.2b2 - Now save results of DSF parse so future runs are faster
-- 2.2b1 - Complete rewrite of airport overlap system. Minor bugfixes
-- 2.1r6 - Hotfix for Windows .lnk shortcut parsing
-- 2.1r5 - Removed `pkg_resources` following deprecation in Python 3.12. Added debugging CLI options
-- 2.1r4 - Fixed bug in selection of DSF to be read. Restored option to install missing Python3 libraries. Performance improvement: removal of need to "scan" Custom Scenery folder. UI improvement: refer to Custom Airport conflicts as "overlaps"; made prompt message clearer
-- 2.1r3 - Fixed some DSFs unable to be read. Rolled back to old method of installing missing libraries automatically. Silenced DSF errors for AutoOrtho
-- 2.1r2 - Fixed X-Plane launches from within the program
-- 2.1r1 - Added support for AutoOrtho. Patched breakage points in newer code. Now offer to launch X-Plane after completion. Now write packs as DISABLED if user doesn't want to use the unclassified packs. UI improvements: get user confirmation before installing missing libraries; warn and describe if packs could not be classified; list out DSF parse errors neatly
-- 2.0r1 - Fix meshes being treated as overlays. Now offer to clean nonexistent X-Plane installs if found. Added code comments. UI improvement: retry user inputs whenever invalid
-- 2.0b6 - Hotfix for multi-codec attempts
-- 2.0b5 - Now offer to write unsorted packs. Now offer a choice to resolve airport conflicts. Fixed apt.dat files unable to be read. UI improvements: list out unsorted packs in one go; display the name of the pack currently being sorted; indent lists for easier reading
-- 2.0b4 - Now offer to carry over DISABLED tags from existing ini. Fixed Windows shortcut support
-- 2.0b3 - Now treat Prefab Airports as its own thing to avoid clashes with Default or Custom Airports
-- 2.0b2 - Now check for Custom Airport conflicts and resolve with user input. Removed X-Plane 9 support (never worked to begin with). UI improvements: now leave gaps in console to differentiate stages; added timer for each stage
-- 2.0b1 - Now parse apt.dat to verify if a pack is an airport. Now sort Default below Custom Overlays. Now alphabetically sort each layer. Now support "Earth Nav data" and other non-conventional capitalisations within packs
-- 1.4b1 - Now attempt to locate XP installs (only available for direct downloads)
-- 1.3.2 - Hotfix for syntax error
-- 1.3.1 - Fixed packs getting jumbled
-- 1.3.0 - Added XP12 support. Sort Default below Custom Airports
-- 1.2 - Added Windows shortcut (.LNK) support and code comments
-- 1.1 - UI improvement: wait for user confirmation before exiting
-- 1.0 - Initial upload
+## Changelog
+
+- 3.1r1 - Added support for macOS alias parsing and restored the option to import disabled packs.
+- 3.0r1 - Resolved issues related to `shutil`'s new behaviour.
+- 3.0a3 - Implemented handling for SimHeaven quirks, improved UI spacing, and added delays between stages. Minor bug fixes.
+- 3.0a2 - Transitioned to `argparser` and made minor adjustments to programme flow.
+- 3.0a1 - Conducted a major code refactor to enhance flexibility and readability.
+- 2.2r1 - Added a shebang to enable double-click execution on Unix systems.
+- 2.2b2 - Optimised performance by saving DSF parse results for faster future runs.
+- 2.2b1 - Completely rewrote the airport overlap system and fixed minor bugs.
+- 2.1r6 - Released a hotfix for Windows `.lnk` shortcut parsing.
+- 2.1r5 - Removed `pkg_resources` following its deprecation in Python 3.12 and added debugging CLI options.
+- 2.1r4 - Fixed a bug in DSF selection, restored the option to install missing Python3 libraries, improved performance by eliminating the need to scan the Custom Scenery folder, and enhanced UI prompts.
+- 2.1r3 - Addressed issues with unreadable DSFs, reverted to the old method of installing missing libraries, and silenced DSF errors for AutoOrtho.
+- 2.1r2 - Fixed issues with launching X-Plane from within the programme.
+- 2.1r1 - Added support for AutoOrtho, patched breakage points, offered to launch X-Plane post-completion, and improved UI with better prompts and error descriptions.
+- 2.0r1 - Corrected the treatment of meshes as overlays, added cleanup options for nonexistent X-Plane installs, and improved UI with retry prompts for invalid inputs.
+- 2.0b6 - Released a hotfix for multi-codec attempts.
+- 2.0b5 - Added options to write unsorted packs and resolve airport conflicts, fixed issues with reading `apt.dat` files, and improved UI with better list displays and pack sorting.
+- 2.0b4 - Added the option to carry over DISABLED tags from existing INI files and fixed Windows shortcut support.
+- 2.0b3 - Treated Prefab Airports as a separate category to avoid clashes with Default or Custom Airports.
+- 2.0b2 - Implemented checks for Custom Airport conflicts, removed X-Plane 9 support, and improved UI with stage differentiation and timers.
+- 2.0b1 - Added `apt.dat` parsing to verify airport packs, sorted Default below Custom Overlays, alphabetically sorted each layer, and supported non-conventional capitalisations within packs.
+- 1.4b1 - Attempted to locate X-Plane installs (only for direct downloads).
+- 1.3.2 - Released a hotfix for a syntax error.
+- 1.3.1 - Fixed issues with jumbled packs.
+- 1.3.0 - Added support for XP12 and sorted Default below Custom Airports.
+- 1.2 - Added support for Windows shortcuts (.LNK) and included code comments.
+- 1.1 - Improved UI by waiting for user confirmation before exiting.
+- 1.0 - Initial release.
 
 
 ## Known Issues
-- macOS aliases do not get read
 - Automatic location of X-Plane installs may not work for Steam users
 
 ## What's planned...
-Naturally, fixing the above :grin:. I also want to really solidify AutoOrtho and SAM support - people have been telling me there's some extra witchcraft it does that messes up this one's output.\
+Naturally, fixing the above :grin:.
 <br>
 There's also saving preferences of custom airport overlaps, so you can simply reuse what you did last time. I'm also considering potential options to let you decide how you want your packs sorted. Perhaps little text files you can copy-paste to your scenery pack would be a good option...\
 <br>

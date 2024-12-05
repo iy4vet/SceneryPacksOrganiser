@@ -27,9 +27,9 @@ jobs:
           OS: ${{ matrix.os }}
         run: |
           pip install -r requirements.txt
-          if [ "$OS" = "windows-latest" ]; then
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
               pip install pywin32
-          elif [ "$OS" = "macos-13" ]; then
+          elif [ "${{ matrix.os }}" == "macos-13" ]; then
               pip install pyobjc
           fi
           python -m PyInstaller organiser.py

@@ -1,5 +1,4 @@
 name: Build and Release Executables
-
 on:
   push:
     tags:
@@ -26,24 +25,21 @@ jobs:
       - name: Build Executable
         env:
           OS: ${{ matrix.os }}
-        shell: bash
         run: |
           pip install -r requirements.txt
-          if [[ "$OS" = "windows-latest" ]]; then 
+          if [ "$OS" = "windows-latest" ]; then
               pip install pywin32
-          fi          
-          python -m PyInstaller  organiser.py
-
+          elif [ "$OS" = "macos-13" ]; then
+              pip install pyobjc
+          fi
+          python -m PyInstaller organiser.py
           ls -l dist/organiser/
-          
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }}-build
-          path: |
-            dist/organiser/organiser
-            dist/organiser/organiser.exe
+          path: dist/organiser/*
 
   release:
     runs-on: ubuntu-latest
@@ -56,16 +52,19 @@ jobs:
         with:
           path: ./build
 
-      - run: |
-          mv build/ubuntu-latest-build/organiser build/ubuntu-latest-build/organiser_linux
-          mv build/macos-13-build/organiser build/macos-13-build/organiser_macos
+      - name: Rename Artifacts
+        run: |
+          mv build/windows-latest-build/organiser.exe build/organiser_windows.exe
+          mv build/ubuntu-latest-build/organiser build/organiser_linux
+          mv build/macos-13-build/organiser build/organiser_macos
 
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ${{ github.workspace }}/build/windows-latest-build/organiser.exe
-            ${{ github.workspace }}/build/ubuntu-latest-build/organiser_linux
-            ${{ github.workspace }}/build/macos-13-build/organiser_macos
+            build/organiser_windows.exe
+            build/organiser_linux
+            build/organiser_macos
           prerelease: ${{ contains(github.ref_name, '-') }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}

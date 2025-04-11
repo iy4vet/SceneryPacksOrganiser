@@ -48,15 +48,15 @@ jobs:
           elif [[ "$CURRENT_OS" == "macos-latest" ]]; then
             pip install pyobjc
           fi
-          # Build without cross-compiling; bundle dependencies, create onefile executable
+          # Build onefile executable and collect dependencies
           python -m PyInstaller --onefile --collect-all psutil --collect-all py7zr --collect-all pycryptodomex --collect-all PyYAML organiser.py $PYINSTALLER_ARGS
-          ls -l dist/organiser/
+          ls -l dist/organiser*
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}-build
-          path: dist/organiser/*
+          path: dist/organiser*
 
   release:
     runs-on: ubuntu-latest
@@ -72,16 +72,16 @@ jobs:
       - name: Rename Artifacts
         shell: bash
         run: |
-          # Windows x64 artifact
-          if [ -d "build/win-build" ]; then
+          # Windows artifact: executable will be named organiser.exe
+          if [ -f "build/win-build/organiser.exe" ]; then
             mv build/win-build/organiser.exe build/organiser_windows.exe
           fi
-          # Linux artifact
-          if [ -d "build/linux-build" ]; then
+          # Linux artifact: executable will be named organiser
+          if [ -f "build/linux-build/organiser" ]; then
             mv build/linux-build/organiser build/organiser_linux
           fi
-          # macOS artifact
-          if [ -d "build/macos-build" ]; then
+          # macOS artifact: executable will be named organiser
+          if [ -f "build/macos-build/organiser" ]; then
             mv build/macos-build/organiser build/organiser_macos
           fi
 

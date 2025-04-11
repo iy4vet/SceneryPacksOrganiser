@@ -12,17 +12,17 @@ jobs:
     strategy:
       matrix:
         include:
-          # Build for Linux
+          # Build for Ubuntu
           - os: ubuntu-latest
-            artifact-name: linux
+            artifact-name: ubuntu
             pyinstaller-args: ""
           # Build for Windows x64
           - os: windows-latest
-            artifact-name: win
+            artifact-name: windows-x64
             pyinstaller-args: ""
-          # Build for macOS
+          # Build for macOS (Intel)
           - os: macos-latest
-            artifact-name: macos
+            artifact-name: macos-intel
             pyinstaller-args: ""
     steps:
       - uses: actions/checkout@v3
@@ -72,26 +72,26 @@ jobs:
       - name: Rename Artifacts
         shell: bash
         run: |
-          # Windows artifact: executable will be named organiser.exe
-          if [ -f "build/win-build/organiser.exe" ]; then
-            mv build/win-build/organiser.exe build/organiser_windows.exe
+          # Windows artifact: rename to organiser_windows-x64.exe
+          if [ -f "build/windows-x64-build/organiser.exe" ]; then
+            mv build/windows-x64-build/organiser.exe build/organiser_windows-x64.exe
           fi
-          # Linux artifact: executable will be named organiser
-          if [ -f "build/linux-build/organiser" ]; then
-            mv build/linux-build/organiser build/organiser_linux
+          # Ubuntu artifact: rename to organiser_ubuntu
+          if [ -f "build/ubuntu-build/organiser" ]; then
+            mv build/ubuntu-build/organiser build/organiser_ubuntu
           fi
-          # macOS artifact: executable will be named organiser
-          if [ -f "build/macos-build/organiser" ]; then
-            mv build/macos-build/organiser build/organiser_macos
+          # macOS artifact: rename to organiser_macos-intel
+          if [ -f "build/macos-intel-build/organiser" ]; then
+            mv build/macos-intel-build/organiser build/organiser_macos-intel
           fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/organiser_windows.exe
-            build/organiser_linux
-            build/organiser_macos
+            build/organiser_windows-x64.exe
+            build/organiser_ubuntu
+            build/organiser_macos-intel
           prerelease: ${{ contains(github.ref_name, '-') }}
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}

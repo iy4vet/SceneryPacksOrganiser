@@ -53,7 +53,7 @@ jobs:
           ls -l dist/organiser/
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}-build
           path: dist/organiser/*

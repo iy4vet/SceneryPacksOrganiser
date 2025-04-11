@@ -1,4 +1,5 @@
 name: Build and Release Executables
+
 on:
   push:
     tags:
@@ -7,10 +8,22 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-13]
+        include:
+          # Build for Linux
+          - os: ubuntu-latest
+            artifact-name: linux
+            pyinstaller-args: ""
+          # Build for Windows x64
+          - os: windows-latest
+            artifact-name: win
+            pyinstaller-args: ""
+          # Build for macOS
+          - os: macos-latest
+            artifact-name: macos
+            pyinstaller-args: ""
     steps:
       - uses: actions/checkout@v3
 
@@ -25,21 +38,24 @@ jobs:
       - name: Build Executable
         shell: bash
         env:
-          OS: ${{ matrix.os }}
+          PYINSTALLER_ARGS: ${{ matrix.config.pyinstaller-args }}
+          CURRENT_OS: ${{ matrix.config.os }}
         run: |
           pip install -r requirements.txt
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-              pip install pywin32
-          elif [ "${{ matrix.os }}" == "macos-13" ]; then
-              pip install pyobjc
+          # OS-specific dependencies
+          if [[ "$CURRENT_OS" == "windows-latest" ]]; then
+            pip install pywin32
+          elif [[ "$CURRENT_OS" == "macos-latest" ]]; then
+            pip install pyobjc
           fi
-          python -m PyInstaller organiser.py
+          # Build without cross-compiling
+          python -m PyInstaller organiser.py $PYINSTALLER_ARGS
           ls -l dist/organiser/
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.os }}-build
+          name: ${{ matrix.config.artifact-name }}-build
           path: dist/organiser/*
 
   release:
@@ -54,10 +70,20 @@ jobs:
           path: ./build
 
       - name: Rename Artifacts
+        shell: bash
         run: |
-          mv build/windows-latest-build/organiser.exe build/organiser_windows.exe
-          mv build/ubuntu-latest-build/organiser build/organiser_linux
-          mv build/macos-13-build/organiser build/organiser_macos
+          # Windows x64 artifact
+          if [ -d "build/win-build" ]; then
+            mv build/win-build/organiser.exe build/organiser_windows.exe
+          fi
+          # Linux artifact
+          if [ -d "build/linux-build" ]; then
+            mv build/linux-build/organiser build/organiser_linux
+          fi
+          # macOS artifact
+          if [ -d "build/macos-build" ]; then
+            mv build/macos-build/organiser build/organiser_macos
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1

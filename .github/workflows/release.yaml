@@ -48,8 +48,8 @@ jobs:
           elif [[ "$CURRENT_OS" == "macos-latest" ]]; then
             pip install pyobjc
           fi
-          # Build without cross-compiling
-          python -m PyInstaller organiser.py $PYINSTALLER_ARGS
+          # Build without cross-compiling; bundle dependencies, create onefile executable
+          python -m PyInstaller --onefile --collect-all psutil --collect-all py7zr --collect-all pycryptodomex --collect-all PyYAML organiser.py $PYINSTALLER_ARGS
           ls -l dist/organiser/
 
       - name: Upload Build Artifact

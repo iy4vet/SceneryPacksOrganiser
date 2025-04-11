@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
@@ -38,8 +38,8 @@ jobs:
       - name: Build Executable
         shell: bash
         env:
-          PYINSTALLER_ARGS: ${{ matrix.config.pyinstaller-args }}
-          CURRENT_OS: ${{ matrix.config.os }}
+          PYINSTALLER_ARGS: ${{ matrix.pyinstaller-args }}
+          CURRENT_OS: ${{ matrix.os }}
         run: |
           pip install -r requirements.txt
           # OS-specific dependencies
@@ -55,7 +55,7 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.config.artifact-name }}-build
+          name: ${{ matrix.artifact-name }}-build
           path: dist/organiser/*
 
   release:
